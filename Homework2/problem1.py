@@ -2,11 +2,6 @@ from pgmpy.readwrite import UAIReader
 import numpy as np
 import operator
 
-def swapPositions(list, pos1, pos2): 
-      
-    list[pos1], list[pos2] = list[pos2], list[pos1] 
-    return list
-
 class GraphicalModel():
     
     def __init__(self):
@@ -15,6 +10,7 @@ class GraphicalModel():
         self.result = 1
 
     def readUAI(self, path):
+        # Function to read the data from the UAI file
         reader = UAIReader(path)
         self.variables = reader.get_variables()
         self.network = reader.get_network_type()
@@ -23,13 +19,14 @@ class GraphicalModel():
         self.domain = reader.get_domain()
         self.current_edges = list(self.edges)
 
-        # print(self.tables)
 
     def print_edges(self):
+        #Function to print the remaining edges of the Graph
         print(self.current_edges)
 
 
     def print(self):
+        #Function to print the remaining factors in the table
         for i in self.tables:
             k = i[0]
             v = i[1]
@@ -46,27 +43,32 @@ class GraphicalModel():
                 pr = ''.join('{}\t'.format(i) for i in b)
                 pr = pr + '    ' + str(value)
                 print(pr)
-
             print()
 
+
+
     def vars_of_edge(self,var):
+        #Function to return factors that have a particular variable from the tables dictionary
         edges = []
         for i in self.tables:
             if(var in i[0]):
                 edges.append(i[0])
-        
         return(edges)
 
+
+
     def edges_of_node(self,var):
+        #Function to return edges of the node based on the initial edges in the graph
         edges = []
         for i in self.current_edges:
             if(var in i):
                 edges.append(i)
-        
         return(edges)
 
-    def order(self):
 
+
+    def order(self):
+        # Function to find the min degree order of variable elimination
         order= []
         ce = list(self.current_edges)
         while(len(self.current_edges)>0):
@@ -115,11 +117,11 @@ class GraphicalModel():
             self.elim_order = order
             
         self.current_edges = list(ce)
-        # self.elim_order = ['var_1','var_2','var_3','var_6',  'var_7', 'var_8']
         print("Order of Elimination \n", self.elim_order)
     
 
     def instantiate(self,path):
+        #Function to instantiate evidence given in the .uai.evid file
         with open(path,"r") as f:
             x = f.read().strip().strip("\n").split(" ")
             l = x.pop(0)
@@ -149,7 +151,7 @@ class GraphicalModel():
 
 
     def new_factor(self, tup, evid):
-        
+        #Function to create new factors. Used in the instantiation function
         for i in evid:
             var = "var_"+i
             if(var in tup[0]):
@@ -186,7 +188,7 @@ class GraphicalModel():
             self.tables.append(tup)
 
     def product(self, edge1, edge2):
-
+        #Function to calculate product of two factors
         common = list((set(edge1) & set(edge2)))[0]
         idx1 = edge1.index(common)
         idx2 = edge2.index(common)
@@ -226,13 +228,14 @@ class GraphicalModel():
             res[i] = float(val1[idx1]) * float(val2[idx2])
 
         new_table_element = [new_fn,list(res)]
-
+        # print("New Factor :", new_table_element)
         self.tables.append(tuple(new_table_element))
         return new_fn
 
 
 
     def sumOut(self, edge, var):
+        #Function to sum out a variable from a factor
         l=1
         for i in edge:
             if(i!=var):
@@ -280,8 +283,12 @@ class GraphicalModel():
 
 
     def variable_elimination(self):
-        print("Graph Edges")
+        #Main function for variable elimination
+        self.order()
+        print("Graph Edges After Instantiation")
         print(self.current_edges)
+
+        print("\n Variable Elimination \n")
         while(len(self.elim_order)>0):
         
             var = self.elim_order.pop(0)
@@ -296,23 +303,22 @@ class GraphicalModel():
             if(len(edges)>=1):
                 new_edge = edges[0]
                 res = self.sumOut(new_edge,var)
+                print()
             else:
                 res = self.sumOut([var],var)
             if(len(res)==1):
                 s = res[0]
                 self.result = self.result * s
-                print("Total: ",self.result)
+                
             
-        
-        
+        print("Total: ",self.result)
         print("Remaining Factors: ",self.tables)
-        
+        print("Result: - ")  
         print(np.log10(self.result))
 
 if __name__=="__main__":
     gm = GraphicalModel()
-    gm.readUAI('homework2_files/3.uai')
-    gm.instantiate('homework2_files/3.uai.evid')
-    gm.order()    
+    gm.readUAI('homework2_files/1.uai')  #Path to the uai file
+    gm.instantiate('homework2_files/1.uai.evid') #Path to the uai evid file   
     gm.variable_elimination()
 
