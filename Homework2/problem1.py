@@ -224,14 +224,9 @@ class GraphicalModel():
             idx1 = int(bstr1,2)
             idx2 = int(bstr2,2)
             res[i] = float(val1[idx1]) * float(val2[idx2])
-            
-        # self.current_edges.append(tuple(new_fn))
-        # if(tuple(edge1) in self.current_edges):
-        #     self.current_edges.remove(tuple(edge1))
-        # if(tuple(edge2) in self.current_edges):
-        #     self.current_edges.remove(tuple(edge2))
+
         new_table_element = [new_fn,list(res)]
-        # print("New Factor :", new_table_element)
+
         self.tables.append(tuple(new_table_element))
         return new_fn
 
